@@ -5,7 +5,7 @@ import os
 import torch
 from model import FeedForwardActor, RecurrentActor
 from encoder import RawEncoder, FFTEncoder, MelSpecEncoder, SampleEncoder
-from pyftg.ai_interface import AIInterface
+from pyftg.aiinterface import AIInterface
 from pyftg.struct import *
 
 STATE_DIM = {
