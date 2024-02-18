@@ -1,2 +1,5 @@
 __pycache__
 ppo_pytorch
+pyftg
+
+*.txt
