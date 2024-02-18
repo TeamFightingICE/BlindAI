@@ -19,7 +19,7 @@ import pickle
 import tqdm
 import pathlib
 import logging
-from pyftg.gateway import Gateway
+from pyftg import Gateway
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)

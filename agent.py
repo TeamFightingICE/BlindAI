@@ -4,7 +4,7 @@
 import time
 import numpy as np
 import torch
-from pyftg.ai_interface import AIInterface
+from pyftg.aiinterface import AIInterface
 from pyftg.struct import *
 
 GATHER_DEVICE = 'cpu'

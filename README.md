@@ -3,12 +3,13 @@
 This page contains the source code and model of our deep reinforcement learning blind AI (Blind AI), the details of which are given in this [paper](https://arxiv.org/abs/2205.07444).
 
 ## Installation:
-- Install miniconda for python 3.8: https://docs.conda.io/en/latest/miniconda.html.
+- Install miniconda for python 3.10: https://docs.conda.io/en/latest/miniconda.html.
 - Clone the repo: `git clone https://github.com/TeamFightingICE/FightingICE`.
 - Create and activate conda env:
   
     ```
-    cd DareFightingICE/DareFightingICE/SampleAI/BlindAI
+    git clone https://github.com/TeamFightingICE/BlindAI
+    cd BlindAI
     conda env create -f environment.yml
     conda activate ice
     ```
