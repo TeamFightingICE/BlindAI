@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch import distributions
-import numpy as np
+
 HIDDEN_SIZE_1 = 256
 HIDDEN_SIZE_2 = 256
 

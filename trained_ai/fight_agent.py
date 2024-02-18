@@ -1,12 +1,16 @@
 import sys
+
 sys.path.append('./')
-import numpy as np
 import os
+
+import numpy as np
 import torch
+
+from encoder import FFTEncoder, MelSpecEncoder, RawEncoder, SampleEncoder
 from model import FeedForwardActor, RecurrentActor
-from encoder import RawEncoder, FFTEncoder, MelSpecEncoder, SampleEncoder
 from pyftg.aiinterface import AIInterface
-from pyftg.struct import *
+from pyftg.struct import AudioData, CommandCenter, FrameData, Key, RoundResult
+
 
 STATE_DIM = {
     1: {
@@ -20,6 +24,8 @@ STATE_DIM = {
         'mel': 1280
     }
 }
+
+
 class SoundAgent(AIInterface):
     def __init__(self, **kwargs):
         self.encoder = kwargs.get('encoder')
@@ -66,7 +72,10 @@ class SoundAgent(AIInterface):
     def close(self):
         pass
 
-    def get_information(self, frame_data: FrameData, is_control: bool, non_delay: FrameData):
+    def get_non_delay_frame_data(self, non_delay: FrameData):
+        pass
+
+    def get_information(self, frame_data: FrameData, is_control: bool):
         # Load the frame data every time getInformation gets called
         self.frameData = frame_data
         self.cc.set_frame_data(self.frameData, self.player)

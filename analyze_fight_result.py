@@ -1,6 +1,8 @@
 import argparse
-import pandas as pd
 import os
+
+import pandas as pd
+
 
 def calculate(path):
     files = [path + '\\' + f for f in os.listdir(path)]

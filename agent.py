@@ -2,14 +2,16 @@
 # TODO check the actions from RHEA_PPO bot (currently 56 by default)
 # TODO collect data
 import time
+
 import numpy as np
 import torch
+
 from pyftg.aiinterface import AIInterface
-from pyftg.struct import *
+from pyftg.struct import AudioData, CommandCenter, FrameData, Key, RoundResult
 
 GATHER_DEVICE = 'cpu'
 
-import logging
+
 class SoundAgent(AIInterface):
     def __init__(self, **kwargs):
         self.actor = kwargs.get('actor')
@@ -93,13 +95,15 @@ class SoundAgent(AIInterface):
     def close(self):
         pass
 
-    def get_information(self, frame_data: FrameData, is_control: bool, non_delay: FrameData):
+    def get_non_delay_frame_data(self, non_delay: FrameData):
+        self.pre_framedata = self.nonDelay if self.nonDelay is not None else non_delay
+        self.nonDelay = non_delay
+
+    def get_information(self, frame_data: FrameData, is_control: bool):
         # Load the frame data every time getInformation gets called
         self.frameData = frame_data
         self.cc.set_frame_data(self.frameData, self.player)
         # nonDelay = self.frameData
-        self.pre_framedata = self.nonDelay if self.nonDelay is not None else non_delay
-        self.nonDelay = non_delay
         self.isControl = is_control
         self.currentFrameNum = self.frameData.current_frame_number  # first frame is 14
 

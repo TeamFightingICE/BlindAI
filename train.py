@@ -1,24 +1,27 @@
 import argparse
+import logging
 import math
-import time
 import os
+import pathlib
+import pickle
 import re
-import psutil
-import numpy as np
 import sys
+import time
+from dataclasses import dataclass
+
+import numpy as np
+import psutil
 import torch
 import torch.nn.functional as F
-from dataclasses import dataclass
+import tqdm
 from dotmap import DotMap
 from torch import optim
 from torch.utils.tensorboard import SummaryWriter
-from agent import SoundAgent, CollectDataHelper
-from model import RecurrentActor, RecurrentCritic, FeedForwardActor, FeedForwardCritic
-from encoder import SampleEncoder, RawEncoder, FFTEncoder, MelSpecEncoder
-import pickle
-import tqdm
-import pathlib
-import logging
+
+from agent import CollectDataHelper, SoundAgent
+from encoder import FFTEncoder, MelSpecEncoder, RawEncoder, SampleEncoder
+from model import (FeedForwardActor, FeedForwardCritic, RecurrentActor,
+                   RecurrentCritic)
 from pyftg import Gateway
 
 logger = logging.getLogger(__name__)

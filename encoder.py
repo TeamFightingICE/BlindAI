@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
+
 import torch
-from torch import nn
-import torchaudio
 import torch.nn.functional as F
+import torchaudio
+from torch import nn
 
 
 class BaseEncoder(nn.Module, ABC):

@@ -1,8 +1,10 @@
-import sys
 import argparse
-from fight_agent import SoundAgent
-from pyftg.gateway import Gateway
 import logging
+import sys
+
+from fight_agent import SoundAgent
+
+from pyftg import Gateway
 
 sys.path.append('../')
 logger = logging.getLogger(__name__)

@@ -1,8 +1,10 @@
 import argparse
+
 import matplotlib.pyplot as plt
 import numpy as np
-import seaborn as sns
 from sklearn.linear_model import LinearRegression
+
+
 def draw_curve(file, title):
     with open(file, 'r') as f:
         data_raw_mean = f.readlines()
@@ -19,6 +21,8 @@ def draw_curve(file, title):
     plt.ylabel('HP Difference')
     plt.show()
     print()
+
+
 def draw_smooth(file, title):
     with open(file, 'r') as f:
         data_raw_mean = f.readlines()
@@ -38,6 +42,8 @@ def draw_smooth(file, title):
     plt.ylabel('HP Difference')
     plt.show()
     print()
+
+
 def draw_polynomial(file, title, degree=4):
     from sklearn.preprocessing import PolynomialFeatures
     with open(file, 'r') as f:
@@ -64,8 +70,8 @@ def draw_polynomial(file, title, degree=4):
     plt.ylabel('HP Difference')
     plt.show()
     
+    
 # draw_polynomial("reward_fft_rnn_1_frame_256_mctsai65_rnn.txt", 'FFT', 4)
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--file', type=str, required=True, help='The result file')
