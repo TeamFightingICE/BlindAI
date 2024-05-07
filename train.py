@@ -15,6 +15,7 @@ import torch
 import torch.nn.functional as F
 import tqdm
 from dotmap import DotMap
+from pyftg.grpc.threading.gateway import Gateway
 from torch import optim
 from torch.utils.tensorboard import SummaryWriter
 
@@ -22,7 +23,6 @@ from agent import CollectDataHelper, SoundAgent
 from encoder import FFTEncoder, MelSpecEncoder, RawEncoder, SampleEncoder
 from model import (FeedForwardActor, FeedForwardCritic, RecurrentActor,
                    RecurrentCritic)
-from pyftg import Gateway
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)

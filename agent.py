@@ -5,9 +5,13 @@ import time
 
 import numpy as np
 import torch
-
-from pyftg.aiinterface import AIInterface
-from pyftg.struct import AudioData, CommandCenter, FrameData, Key, RoundResult
+from pyftg.aiinterface.ai_interface import AIInterface
+from pyftg.aiinterface.command_center import CommandCenter
+from pyftg.models.audio_data import AudioData
+from pyftg.models.frame_data import FrameData
+from pyftg.models.key import Key
+from pyftg.models.round_result import RoundResult
+from pyftg.models.screen_data import ScreenData
 
 GATHER_DEVICE = 'cpu'
 
@@ -85,7 +89,7 @@ class SoundAgent(AIInterface):
     def initialize(self, gameData, player):
         # Initializng the command center, the simulator and some other things
         self.inputKey = Key()
-        self.frameData = FrameData()
+        self.frameData = FrameData.get_default_instance()
         self.cc = CommandCenter()
         self.player = player  # p1 == True, p2 == False
         self.gameData = gameData
@@ -107,7 +111,6 @@ class SoundAgent(AIInterface):
         self.isControl = is_control
         self.currentFrameNum = self.frameData.current_frame_number  # first frame is 14
 
-
     def round_end(self, round_result: RoundResult):
         self.logger.info(round_result.remaining_hps[0])
         self.logger.info(round_result.remaining_hps[1])
@@ -124,6 +127,12 @@ class SoundAgent(AIInterface):
         self.raw_audio_memory = None
         self.round_count += 1 
         self.logger.info('Finished {} round'.format(self.round_count))
+    
+    def game_end(self):
+        pass
+
+    def get_screen_data(self, screen_data: ScreenData):
+        pass
 
     def input(self):
         return self.inputKey

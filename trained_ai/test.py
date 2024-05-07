@@ -3,8 +3,7 @@ import logging
 import sys
 
 from fight_agent import SoundAgent
-
-from pyftg import Gateway
+from pyftg.grpc.threading.gateway import Gateway
 
 sys.path.append('../')
 logger = logging.getLogger(__name__)
