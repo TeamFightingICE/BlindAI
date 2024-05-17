@@ -214,7 +214,7 @@ class SoundAgent(AIInterface):
         self.audio_data = audio_data
         # process audio
         try:
-            byte_data = self.audio_data.raw_data_as_bytes
+            byte_data: bytes = self.audio_data.raw_data_bytes
             np_array = np.frombuffer(byte_data, dtype=np.float32)
             raw_audio = np_array.reshape((2, 1024))
             raw_audio = raw_audio.T
