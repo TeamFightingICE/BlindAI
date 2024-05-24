@@ -205,7 +205,8 @@ async def collect_trajectories(actor, critic, port, game_num, p2, rnn, n_frame):
     logger.info(f'game_num value {game_num}')
     error = True
     while error:
-        gateway = Gateway(port=port)
+        host = os.environ.get("SERVER_HOST", "127.0.0.1")
+        gateway = Gateway(host, port)
         # try:
         current_time = int(time.time() * 1000)
         # register AIs

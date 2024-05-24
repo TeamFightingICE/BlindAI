@@ -1,5 +1,6 @@
 import argparse
 import logging
+import os
 import sys
 
 from fight_agent import SoundAgent
@@ -8,11 +9,12 @@ from pyftg.socket.aio.gateway import Gateway
 sys.path.append('../')
 logger = logging.getLogger(__name__)
 
-def start_game(encoder: str, characters: 'list[str]', p2: str, game_num: int):
+def start_game(port: int, encoder: str, characters: 'list[str]', p2: str, game_num: int):
+    host = os.environ.get("SERVER_HOST", "127.0.0.1")
     for character in characters:
         # FFT GRU
         for _ in range(game_num):
-            gateway = Gateway()
+            gateway = Gateway(host, port)
             ai_name = 'FFTGRU'
             agent = SoundAgent(logger=logger, encoder=encoder, path='trained_model', rnn=True)
             gateway.register_ai(ai_name, agent)
@@ -32,4 +34,4 @@ if __name__ == '__main__':
     characters = ['ZEN']
     logger.info('Input parameters:')
     logger.info(' '.join(f'{k}={v}' for k, v in vars(args).items()))
-    start_game(args.encoder, characters, args.p2, args.game_num)
+    start_game(args.port, args.encoder, characters, args.p2, args.game_num)
