@@ -1,4 +1,5 @@
 import argparse
+import asyncio
 import logging
 import math
 import os
@@ -15,7 +16,7 @@ import torch
 import torch.nn.functional as F
 import tqdm
 from dotmap import DotMap
-from pyftg.grpc.threading.gateway import Gateway
+from pyftg.socket.aio.gateway import Gateway
 from torch import optim
 from torch.utils.tensorboard import SummaryWriter
 
@@ -65,8 +66,7 @@ STATE_DIM = {
         'mel': 1280
     }
 }
-GATHER_DEVICE = 'cpu'
-# GATHER_DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
+GATHER_DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 TRAIN_DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 BATCH_LEN = 32
 PPO_CLIP = 0.2
@@ -149,7 +149,7 @@ def process_game_agent_data(actor_, critic_, data_collect_helper, recurrent):
 
         # compute for final state
         state = torch.tensor(obsv, dtype=torch.float32)
-        value = critic(state.unsqueeze(0).to(GATHER_DEVICE))
+        value = critic_(state.unsqueeze(0).to(GATHER_DEVICE))
         round_value_list.append(value.squeeze())
 
         episode_lengths.append(len(round_state_list))
@@ -200,30 +200,30 @@ def normalize_reward(reward):
     return (reward + 400) / 800
 
 # collect trajectories
-def collect_trajectories(actor, critic, port, game_num, p2, rnn, n_frame):
+async def collect_trajectories(actor, critic, port, game_num, p2, rnn, n_frame):
     logger.info(f'start fight with {p2}')
     logger.info(f'game_num value {game_num}')
     error = True
     while error:
         gateway = Gateway(port=port)
-        try:
-            current_time = int(time.time() * 1000)
-            # register AIs
-            collect_data_helper = CollectDataHelper(logger)
-            agent = SoundAgent(actor=actor, critic=critic, collect_data_helper=collect_data_helper, logger=logger, n_frame=n_frame, rnn=rnn)
-            gateway.register_ai('SoundAgent', agent)
-            gateway.run_game(['ZEN', 'ZEN'], ['SoundAgent', p2], game_num)
-            # finish game
-            logger.info('Finish game')
-            sys.stdout.flush()
-            # close gateway
-            gateway.close()
-            error = False
-        except Exception as ex:
-            print(ex)
-            logger.info('There is an error with the gateway, restarting')
-            gateway.close()
-            error = True
+        # try:
+        current_time = int(time.time() * 1000)
+        # register AIs
+        collect_data_helper = CollectDataHelper(logger)
+        agent = SoundAgent(actor=actor, critic=critic, collect_data_helper=collect_data_helper, logger=logger, n_frame=n_frame, rnn=rnn)
+        gateway.register_ai('SoundAgent', agent)
+        await gateway.run_game(['ZEN', 'ZEN'], ['SoundAgent', p2], game_num)
+        # finish game
+        logger.info('Finish game')
+        sys.stdout.flush()
+        # close gateway
+        await gateway.close()
+        error = False
+        # except Exception as ex:
+        #     print(ex)
+        #     logger.info('There is an error with the gateway, restarting')
+        #     await gateway.close()
+        #     error = True
 
 
     # return agent.get_trajectories_data()
@@ -280,15 +280,15 @@ def pad_and_compute_returns(trajectory_episodes, len_episodes):
         for key, value in trajectory_episodes.items():
             if value[i].ndim > 2:
                 padding = torch.zeros(episode_max_length - len_episodes[i], value[0].shape[1], value[0].shape[2],
-                                      dtype=value[i].dtype)
+                                      dtype=value[i].dtype).to(GATHER_DEVICE)
             elif value[i].ndim > 1:
-                padding = torch.zeros(episode_max_length - len_episodes[i], value[0].shape[1], dtype=value[i].dtype)
+                padding = torch.zeros(episode_max_length - len_episodes[i], value[0].shape[1], dtype=value[i].dtype).to(GATHER_DEVICE)
             else:
-                padding = torch.zeros(episode_max_length - len_episodes[i], dtype=value[i].dtype)
-            padded_trajectories[key].append(torch.cat((value[i], padding)))
+                padding = torch.zeros(episode_max_length - len_episodes[i], dtype=value[i].dtype).to(GATHER_DEVICE)
+            padded_trajectories[key].append(torch.cat((value[i].to(GATHER_DEVICE), padding)))
         padded_trajectories["advantages"].append(
-            torch.cat((compute_advantages(rewards=trajectory_episodes["rewards"][i],
-                                          values=trajectory_episodes["values"][i],
+            torch.cat((compute_advantages(rewards=trajectory_episodes["rewards"][i].to(GATHER_DEVICE),
+                                          values=trajectory_episodes["values"][i].to(GATHER_DEVICE),
                                           discount=GAMMA,
                                           gae_lambda=LAMBDA), single_padding)))
         padded_trajectories["discounted_returns"].append(
@@ -375,7 +375,7 @@ class TrajectoryDataset():
         return math.ceil(math.ceil(self.cumsum_seq_len[-1] / self.sequence_len) / self.batch_size)
 
 
-def train_model(actor, critic, actor_optimizer, critic_optimizer, iteration, port, encoder_name, experiment_id, p2, recurrent, n_frame, epoch, training_iteration, game_num):
+async def train_model(actor, critic, actor_optimizer, critic_optimizer, iteration, port, encoder_name, experiment_id, p2, recurrent, n_frame, epoch, training_iteration, game_num):
     loop_count = 0
     if not recurrent:
         writer = SummaryWriter(log_dir=f'ppo_pytorch/logs/{encoder_name}/{experiment_id}')
@@ -397,7 +397,7 @@ def train_model(actor, critic, actor_optimizer, critic_optimizer, iteration, por
         # run 1 game in GAME_NUM times and concatenate game data together
         for i in range(game_num):
             logger.info('Start game {}'.format(i+1))
-            game_trajectories_data, game_episode_lengths = collect_trajectories(actor, critic, port, 1, p2, recurrent, n_frame)
+            game_trajectories_data, game_episode_lengths = await collect_trajectories(actor, critic, port, 1, p2, recurrent, n_frame)
             total_trajectories_data.append(game_trajectories_data)
             
             for k, v in game_trajectories_data.items():
@@ -419,12 +419,12 @@ def train_model(actor, critic, actor_optimizer, critic_optimizer, iteration, por
         complete_episode_count = len(trajectories_data['states'])
         terminal_episodes_rewards = trajectories["true_rewards"].sum(axis=1).sum()
         mean_reward = terminal_episodes_rewards / complete_episode_count
-        stddev_reward = np.std(trajectories["true_rewards"].sum(axis=1).numpy())
+        stddev_reward = np.std(trajectories["true_rewards"].cpu().sum(axis=1).numpy())
 
         #  normalized rewards
         normalized_terminal_episodes_rewards = trajectories["rewards"].sum(axis=1).sum()
         normalized_mean_reward = normalized_terminal_episodes_rewards / complete_episode_count
-        normalized_stddev_reward = np.std(trajectories["rewards"].sum(axis=1).numpy())
+        normalized_stddev_reward = np.std(trajectories["rewards"].cpu().sum(axis=1).numpy())
 
         # log mean_reward
         trajectory_dataset = TrajectoryDataset(trajectories, batch_size=BATCH_SIZE, device=TRAIN_DEVICE, sequence_len=BATCH_LEN, recurrent=recurrent)
@@ -665,11 +665,25 @@ def load_checkpoint(encoder_name, experiment_id, iteration, rnn):
            actor_optimizer_state_dict, critic_optimizer_state_dict,
 
 
+async def main_process(args: argparse.Namespace):
+    actor, critic, actor_optim, critic_optim, iteration = init(args.encoder, args.id, args.n_frame, args.recurrent)
+    logger.info(f'iteration {iteration}')
+    while iteration < args.training_iteration - 1:
+        logger.info(f'Start training at epoch: {iteration}')
+        # try:
+        actor, critic, actor_optim, critic_optim, iteration = init(args.encoder, args.id, args.n_frame, args.recurrent)
+        await train_model(actor, critic, actor_optim, critic_optim, iteration, args.port, args.encoder, args.id, args.p2, args.recurrent, 
+                            args.n_frame, args.epoch, args.training_iteration, args.game_num)
+        # except Exception as ex:
+        #     print(ex)
+        #     logger.error("Error occurred while collecting trajectories data, restarting")
+
+
 if __name__ == '__main__':
     # EXPERIMENT_NAME
     parser = argparse.ArgumentParser()
     parser.add_argument('--encoder', type=str, choices=['conv1d', 'fft', 'mel'], default='conv1d', help='Choose an encoder for the Blind AI')
-    parser.add_argument('--port', type=int, default=50051, help='Port used by DareFightingICE')
+    parser.add_argument('--port', type=int, default=31415, help='Port used by DareFightingICE')
     parser.add_argument('--id', type=str, required=True, help='Experiment id')
     parser.add_argument('--p2', choices=['Sandbox', 'MctsAi23i'], type=str, required=True, help='The opponent AI')
     parser.add_argument('--recurrent', action='store_true', help='Use GRU')
@@ -680,15 +694,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
     logger.info('Input parameters:')
     logger.info(' '.join(f'{k}={v}' for k, v in vars(args).items()))
-    actor, critic, actor_optim, critic_optim, iteration = init(args.encoder, args.id, args.n_frame, args.recurrent)
-    logger.info(f'iteration {iteration}')
-    while iteration < args.training_iteration - 1:
-        logger.info(f'Start training at epoch: {iteration}')
-        try:
-            actor, critic, actor_optim, critic_optim, iteration = init(args.encoder, args.id, args.n_frame, args.recurrent)
-            train_model(actor, critic, actor_optim, critic_optim, iteration, args.port, args.encoder, args.id, args.p2, args.recurrent, 
-                        args.n_frame, args.epoch, args.training_iteration, args.game_num)
-        except Exception as ex:
-            print(ex)
-            logger.error("Error occurred while collecting trajectories data, restarting")
-
+    asyncio.run(main_process(args))

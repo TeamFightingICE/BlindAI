@@ -67,7 +67,7 @@ class SoundAgent(AIInterface):
     def initialize(self, gameData, player):
         # Initializng the command center, the simulator and some other things
         self.inputKey = Key()
-        self.frameData = FrameData.get_default_instance()
+        self.frameData = FrameData()
         self.cc = CommandCenter()
         self.player = player  # p1 == True, p2 == False
         self.gameData = gameData

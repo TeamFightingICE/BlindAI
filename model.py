@@ -24,7 +24,7 @@ class RecurrentActor(nn.Module):
         # self.hidden_cell = torch.zeros(self.recurrent_layers, batch_size, self.hidden_size).to(device)
         self.hidden_cell = torch.zeros(self.recurrent_layers, self.hidden_size).to(device)
 
-    def forward(self, state, terminal=None):
+    def forward(self, state, terminal=None) -> distributions.Categorical:
         # batch_size = state.shape[1]
         device = state.device
         # perform audio encoder
