@@ -2,18 +2,32 @@
 
 This page contains the source code and model of our deep reinforcement learning blind AI (Blind AI), the details of which are given in this [paper](https://arxiv.org/abs/2205.07444).
 
+## Quickstart with Docker
+- Clone the project
+```
+git clone https://github.com/TeamFightingICE/BlindAI
+cd BlindAI
+```
+- Build the docker image
+```
+docker build -t ghcr.io/teamfightingice/blind-ai .
+```
+- Boot DareFightingICE with the option `--limithp 400 400 --pyftg-mode --non-delay 0`.
+- Run the docker container
+```
+docker run -it --rm --gpus all -v ${PWD}/ppo_pytorch:/app/ppo_pytorch -e SERVER_HOST=host.docker.internal ghcr.io/teamfightingice/blindai train.py --p2 MctsAi23i --encoder mel --id rnn_1_frame_256_mctsai23i --n_frame 1 --recurrent
+```
+
 ## Installation:
 - Install miniconda: https://docs.conda.io/en/latest/miniconda.html.
 - Clone the repo: `git clone https://github.com/TeamFightingICE/FightingICE`.
 - Create and activate conda env:
-  
-    ```
-    git clone https://github.com/TeamFightingICE/BlindAI
-    cd BlindAI
-    conda env create -n ice -f environment.yml
-    conda activate ice
-    ```
-
+```
+git clone https://github.com/TeamFightingICE/BlindAI
+cd BlindAI
+conda env create -n ice -f environment.yml
+conda activate ice
+```
 - Boot DareFightingICE with the option `--limithp 400 400 --grpc-auto --non-delay 0`.
 - Run the ```train.py``` file to train. e.g ```python train.py --p2 MctsAi23i --encoder mel --id rnn_1_frame_256_mctsai23i --n_frame 1 --recurrent```
 - Download the model from [here](https://drive.google.com/file/d/1Kz_qzUmcJOAj0B9JfFbTJ1FzRFu8fg0B/view?usp=share_link) and paste the folder named `trained_model` into the root directory.
@@ -43,14 +57,14 @@ This page contains the source code and model of our deep reinforcement learning 
 - 16.0 GB RAM
 - NVIDIA Quadro P1000 GPU
 - Windows 10 Pro
-- Python 3.8
-- DareFightingICE 5.2 (from the project's Github)
+- Python 3.12
+- DareFightingICE 7.0
 
 ## Performance against MctsAi23i
 - Winning ratio: 0.54
 - Average HP difference: 18.87   
 
 ## Deep learning libraries in use:
-- pytorch 1.11.0
-- torchaudio 0.11.0
-- torchvision 0.12.0
+- pytorch 2.3.0
+- torchaudio 2.3.0
+- torchvision 0.18.0
