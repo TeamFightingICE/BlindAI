@@ -19,4 +19,4 @@ RUN ${CONDA_HOME}/bin/conda env create -n ice -f environment.yml \
 
 COPY ./*.py .
 
-ENTRYPOINT [ "${CONDA_HOME}/envs/ice/bin/python" ]
+ENTRYPOINT [ "${CONDA_HOME}/envs/ice/bin/python", "main.py" ]
