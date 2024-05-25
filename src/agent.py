@@ -7,9 +7,12 @@ from pyftg.models.frame_data import FrameData
 from pyftg.models.key import Key
 from pyftg.models.round_result import RoundResult
 from pyftg.models.screen_data import ScreenData
-from model import RecurrentActor, RecurrentCritic
 
-GATHER_DEVICE = 'cuda'
+from src.config import GATHER_DEVICE
+from src.dataclasses.collect_data_helper import CollectDataHelper
+from src.models.recurrent_actor import RecurrentActor
+from src.models.recurrent_critic import RecurrentCritic
+from loguru import logger
 
 
 class SoundAgent(AIInterface):
@@ -17,7 +20,6 @@ class SoundAgent(AIInterface):
         self.actor: RecurrentActor = kwargs.get('actor')
         self.critic: RecurrentCritic = kwargs.get('critic')
         self.device = GATHER_DEVICE
-        self.logger = kwargs.get('logger')
         self.collect_data_helper = kwargs.get('collect_data_helper')
         self.rnn = kwargs.get('rnn')
         self.trajectories_data = None
@@ -71,9 +73,9 @@ class SoundAgent(AIInterface):
         self.currentFrameNum = self.frameData.current_frame_number  # first frame is 14
 
     def round_end(self, round_result: RoundResult):
-        self.logger.info(round_result.remaining_hps[0])
-        self.logger.info(round_result.remaining_hps[1])
-        self.logger.info(round_result.elapsed_frame)
+        logger.info(round_result.remaining_hps[0])
+        logger.info(round_result.remaining_hps[1])
+        logger.info(round_result.elapsed_frame)
         self.just_inited = True
         obs = self.raw_audio_memory
         if obs is not None:
@@ -85,7 +87,7 @@ class SoundAgent(AIInterface):
         self.collect_data_helper.finish_round()
         self.raw_audio_memory = None
         self.round_count += 1 
-        self.logger.info('Finished {} round'.format(self.round_count))
+        logger.info('Finished {} round'.format(self.round_count))
     
     def game_end(self):
         pass
@@ -160,71 +162,4 @@ class SoundAgent(AIInterface):
         self.audio_data = audio_data
     
     def reset(self):
-        self.collect_data_helper = CollectDataHelper(self.logger)
-
-class CollectDataHelper:
-    total_round_data = []
-    total_round_action_data = []
-    total_round_action_dist_data = []
-    total_round_actor_hidden_data = []
-
-    current_round_data = []
-    current_round_action = []
-    current_round_action_dist_data = []
-    current_round_actor_hidden_data = []
-    # curr_idx = 0
-
-    def __init__(self, logger) -> None:
-        self.total_round_data = []
-        self.total_round_action_data = []
-        self.total_round_action_dist_data = []
-        self.total_round_actor_hidden_data = []
-
-        self.current_round_data = []
-        self.current_round_action = []
-        self.current_round_action_dist_data = []
-        self.current_round_actor_hidden_data = []
-        self.logger = logger
-        self.logger.info('create new data helper')
-
-    def put(self, data):
-        if(len(data) == 1):
-            self.logger.info('put data at game reset')
-            if len(self.current_round_data) > 0 and len(self.current_round_data[-1]) == 1:
-                self.logger.info('game reset data exists')
-        self.current_round_data.append(data)
-
-    def put_action(self, action):
-        self.current_round_action.append(action)
-
-    def put_action_dist(self, action_dist):
-        self.current_round_action_dist_data.append(action_dist)
-
-    def put_actor_hidden_data(self, hidden_data):
-        self.current_round_actor_hidden_data.append(hidden_data)
-
-    def finish_round(self):
-        self.total_round_data.append(self.current_round_data)
-        self.current_round_data = []
-
-        self.total_round_action_data.append(self.current_round_action)
-        self.current_round_action = []
-
-        self.total_round_action_dist_data.append(self.current_round_action_dist_data)
-        self.current_round_action_dist_data = []
-
-        self.total_round_actor_hidden_data.append(self.current_round_actor_hidden_data)
-        self.current_round_actor_hidden_data = []
-
-    def reset(self):
-        self.total_round_data = []
-        self.current_round_data = []
-
-        self.total_round_action_data = []
-        self.current_round_action = []
-
-        self.total_round_action_dist_data = []
-        self.current_round_action_dist_data = []
-
-        self.total_round_actor_hidden_data = []
-        self.current_round_actor_hidden_data = []
+        self.collect_data_helper = CollectDataHelper()
