@@ -6,7 +6,7 @@ This page contains the source code and model of our deep reinforcement learning 
 - Boot DareFightingICE with the option `--limithp 400 400 --pyftg-mode --non-delay 0`.
 - Run the docker container
 ```
-docker run -it --rm --gpus all -v ${PWD}/ppo_pytorch:/app/ppo_pytorch -e SERVER_HOST=host.docker.internal ghcr.io/teamfightingice/blindai train --p2 MctsAi23i --encoder mel --id rnn_1_frame_256_mctsai23i --n_frame 1 --recurrent
+docker run -it --rm --gpus all -v ${PWD}/ppo_pytorch:/app/ppo_pytorch -e SERVER_HOST=host.docker.internal ghcr.io/teamfightingice/blindai train --p2 MctsAi23i --encoder mel --id rnn_1_frame_256_mctsai23i --n-frame 1 --recurrent
 ```
 
 ## Installation:

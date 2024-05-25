@@ -17,6 +17,7 @@ RUN ${CONDA_HOME}/bin/conda env create -n ice -f environment.yml \
     && ${CONDA_HOME}/bin/conda clean -y -a \
     && rm ./environment.yml
 
-COPY ./*.py .
+COPY ./src ./src
+COPY ./main.py .
 
-ENTRYPOINT [ "${CONDA_HOME}/envs/ice/bin/python", "main.py" ]
+ENTRYPOINT [ "/opt/conda/envs/ice/bin/python", "main.py" ]
