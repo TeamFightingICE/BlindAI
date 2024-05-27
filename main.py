@@ -5,9 +5,9 @@ from loguru import logger
 from typing_extensions import Annotated, Optional
 
 from src.analyze import analyze_fight_result
-from src.core import async_train_process
 from src.enums.encoder import EncoderEnum
 from src.enums.opponent_ai import OpponentAIEnum
+from src.train import async_train_process
 from src.visualize import draw_polynomial
 
 app = typer.Typer()
@@ -25,15 +25,9 @@ def train(
         game_num: Annotated[int, typer.Option(help="Number of games to play per iteration")] = 5,
         port: Annotated[Optional[int], typer.Option(help="Port used by DareFightingICE")] = 31415):
     input_params = {
-        'id': id,
-        'encoder': encoder.value,
-        'p2': p2.value,
-        'recurrent': recurrent,
-        'n_frame': n_frame,
-        'epoch': epoch,
-        'training_iteration': training_iteration,
-        'game_num': game_num,
-        'port': port
+        'id': id, 'encoder': encoder.value, 'p2': p2.value, 'recurrent': recurrent,
+        'n_frame': n_frame, 'epoch': epoch, 'training_iteration': training_iteration,
+        'game_num': game_num, 'port': port
     }
     logger.info('Input parameters:')
     logger.info(input_params)

@@ -145,15 +145,13 @@ def process_game_agent_data(actor_, critic_, data_collect_helper, recurrent):
 
 # collect trajectories
 async def collect_trajectories(
-        actor: torch.nn.Module, critic: torch.nn.Module,
-        port: int, game_num: int, p2: str, rnn: bool, n_frame: int):
+        gateway: Gateway, actor: torch.nn.Module, critic: torch.nn.Module,
+        game_num: int, p2: str, rnn: bool, n_frame: int):
     logger.info(f'start fight with {p2}')
     logger.info(f'game_num value {game_num}')
 
     error = True
     while error:
-        host = os.environ.get("SERVER_HOST", "127.0.0.1")
-        gateway = Gateway(host, port)
         try:
             # register AIs
             collect_data_helper = CollectDataHelper()
@@ -163,12 +161,9 @@ async def collect_trajectories(
             # finish game
             logger.info('Finish game')
             sys.stdout.flush()
-            # close gateway
-            await gateway.close()
             error = False
         except Exception:
             logger.info('There is an error with the gateway, restarting')
-            await gateway.close()
             error = True
 
     agent_data = process_game_agent_data(actor, critic, agent.collect_data_helper, rnn)
@@ -219,12 +214,17 @@ async def train_model(
         actor: torch.nn.Module, critic: torch.nn.Module, actor_optimizer: optim.Optimizer, critic_optimizer: optim.Optimizer,
         iteration: int, port: int, encoder_name: str, experiment_id: str, p2: str, recurrent: bool, n_frame: int, 
         epoch: int, training_iteration: int, game_num: int):
+    
     loop_count = 0
+
     if not recurrent:
         writer = SummaryWriter(log_dir=f'ppo_pytorch/logs/{encoder_name}/{experiment_id}')
     else:
         writer = SummaryWriter(log_dir=f'ppo_pytorch/logs/{encoder_name}/rnn/{experiment_id}')
     iteration += 1
+
+    host = os.environ.get("SERVER_HOST", "127.0.0.1")
+    gateway = Gateway(host, port)
     while iteration < training_iteration:
         logger.info(f"Training iteration {iteration}")
         actor = actor.to(GATHER_DEVICE)
@@ -240,7 +240,7 @@ async def train_model(
         # run 1 game in GAME_NUM times and concatenate game data together
         for i in range(game_num):
             logger.info('Start game {}'.format(i+1))
-            game_trajectories_data, game_episode_lengths = await collect_trajectories(actor, critic, port, 1, p2, recurrent, n_frame)
+            game_trajectories_data, game_episode_lengths = await collect_trajectories(gateway, actor, critic, port, 1, p2, recurrent, n_frame)
             total_trajectories_data.append(game_trajectories_data)
             
             for k, v in game_trajectories_data.items():
@@ -252,8 +252,6 @@ async def train_model(
 
         # for game_trajectories_data in 
         episode_lengths = total_episode_lengths
-        # trajectories_data = process_trajectories(trajectories_data)
-        # episode_lengths = trajectories_data['episode_lengths']
         logger.info('Calculate returns')
         trajectories = pad_and_compute_returns(trajectories_data, episode_lengths)
         logger.info('Calculate mean reward')
@@ -281,7 +279,6 @@ async def train_model(
             logger.info(f'Epoch {i+1}')
             for batch in tqdm.tqdm(trajectory_dataset):
                 # Get batch
-                # actor.hidden_cell = (batch.actor_hidden_states[:1], batch.actor_cell_states[:1])
                 if recurrent:
                     actor.hidden_cell = batch.actor_hidden_states[:1]
 
@@ -289,17 +286,14 @@ async def train_model(
                 actor_optimizer.zero_grad()
                 action_dist = actor(batch.states)
                 # Action dist runs on cpu as a workaround to CUDA illegal memory access.
-                # action_probabilities = action_dist.log_prob(batch.actions.to("cpu")).to(TRAIN_DEVICE)  # batch.actions[-1, :]
                 action_probabilities = action_dist.log_prob(batch.actions).to(TRAIN_DEVICE)
                 # Compute probability ratio from probabilities in logspace.
-                probabilities_ratio = torch.exp(action_probabilities - batch.action_probabilities)  # [-1, :])
-                surrogate_loss_0 = probabilities_ratio * batch.advantages  # [-1, :]
+                probabilities_ratio = torch.exp(action_probabilities - batch.action_probabilities)
+                surrogate_loss_0 = probabilities_ratio * batch.advantages
                 surrogate_loss_1 = torch.clamp(probabilities_ratio, 1. - PPO_CLIP,
-                                               1. + PPO_CLIP) * batch.advantages  # [-1, :]
+                                               1. + PPO_CLIP) * batch.advantages
                 actor_loss = -torch.mean(torch.min(surrogate_loss_0, surrogate_loss_1))
                 surrogate_loss_2 = action_dist.entropy().to(TRAIN_DEVICE)
-                # actor_loss = -torch.mean(torch.min(surrogate_loss_0, surrogate_loss_1)) - torch.mean(
-                #     ENTROPY_FACTOR * surrogate_loss_2)
                 actor_loss.backward()
                 torch.nn.utils.clip_grad.clip_grad_norm_(actor.parameters(), MAX_GRAD_NORM)
                 actor_optimizer.step()
@@ -307,9 +301,9 @@ async def train_model(
                 # Update critic
                 critic_optimizer.zero_grad()
                 if recurrent:
-                    critic.hidden_cell = batch.critic_hidden_states[:1]  # , batch.critic_cell_states[:1])
+                    critic.hidden_cell = batch.critic_hidden_states[:1]
                 values = critic(batch.states)
-                critic_loss = F.mse_loss(batch.discounted_returns, values.squeeze())  # batch.discounted_returns[-1, :]
+                critic_loss = F.mse_loss(batch.discounted_returns, values.squeeze())
                 torch.nn.utils.clip_grad.clip_grad_norm_(critic.parameters(), MAX_GRAD_NORM)
                 critic_loss.backward()
                 critic_optimizer.step()
@@ -344,6 +338,8 @@ async def train_model(
         del critic_loss
         del actor_loss
         torch.cuda.empty_cache()
+
+    await gateway.close()
 
 
 def save_parameters(writer, tag, model, batch_idx, encoder, experiment_id):
@@ -380,7 +376,7 @@ def save_reward_file(encoder, experiment_id, reward, filename="reward", recurren
         f.write('\n')
 
 
-def init(encoder_name, experiment_id, n_frame, rnn=True) -> Tuple[torch.nn.Module, torch.nn.Module, optim.Optimizer, optim.Optimizer, int]:
+def init_train(encoder_name, experiment_id, n_frame, rnn=True) -> Tuple[torch.nn.Module, torch.nn.Module, optim.Optimizer, optim.Optimizer, int]:
     # TODO load data from checkpoint
     if rnn:
         print('init recurrent network')
@@ -484,12 +480,12 @@ def load_checkpoint(encoder_name, experiment_id, iteration, rnn):
 async def async_train_process(
         encoder: str, id: str, p2: str, recurrent: bool, n_frame: int, 
         epoch: int, training_iteration: int, game_num: int, port: int = 31415):
-    actor, critic, actor_optim, critic_optim, iteration = init(encoder, id, n_frame, recurrent)
+    actor, critic, actor_optim, critic_optim, iteration = init_train(encoder, id, n_frame, recurrent)
     logger.info(f'iteration {iteration}')
     while iteration < training_iteration - 1:
         logger.info(f'Start training at epoch: {iteration}')
         try:
-            actor, critic, actor_optim, critic_optim, iteration = init(encoder, id, n_frame, recurrent)
+            actor, critic, actor_optim, critic_optim, iteration = init_train(encoder, id, n_frame, recurrent)
             await train_model(actor, critic, actor_optim, critic_optim, iteration, port, encoder, id, p2, recurrent, 
                                 n_frame, epoch, training_iteration, game_num)
         except Exception:
