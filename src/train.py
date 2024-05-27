@@ -162,7 +162,8 @@ async def collect_trajectories(
             logger.info('Finish game')
             sys.stdout.flush()
             error = False
-        except Exception:
+        except Exception as e:
+            print(e)
             logger.info('There is an error with the gateway, restarting')
             error = True
 
@@ -240,7 +241,7 @@ async def train_model(
         # run 1 game in GAME_NUM times and concatenate game data together
         for i in range(game_num):
             logger.info('Start game {}'.format(i+1))
-            game_trajectories_data, game_episode_lengths = await collect_trajectories(gateway, actor, critic, port, 1, p2, recurrent, n_frame)
+            game_trajectories_data, game_episode_lengths = await collect_trajectories(gateway, actor, critic, 1, p2, recurrent, n_frame)
             total_trajectories_data.append(game_trajectories_data)
             
             for k, v in game_trajectories_data.items():
@@ -488,5 +489,6 @@ async def async_train_process(
             actor, critic, actor_optim, critic_optim, iteration = init_train(encoder, id, n_frame, recurrent)
             await train_model(actor, critic, actor_optim, critic_optim, iteration, port, encoder, id, p2, recurrent, 
                                 n_frame, epoch, training_iteration, game_num)
-        except Exception:
+        except Exception as e:
+            print(e)
             logger.error("Error occurred while collecting trajectories data, restarting")
