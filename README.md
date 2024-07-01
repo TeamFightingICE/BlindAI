@@ -20,7 +20,7 @@ This page contains the source code and model of our deep reinforcement learning 
 - Run the ```trained_ai/test.py``` to test the Blind AI. e.g. ```python trained_ai/test.py --p2 MctsAi23i --encoder mel```
 
 ## Model:
-- [Click here.](https://drive.google.com/file/d/1Kz_qzUmcJOAj0B9JfFbTJ1FzRFu8fg0B/view?usp=share_link)<br>
+- [Click here.](https://drive.google.com/file/d/1vvklFZbTg7TTRIMukuH_OiCrzPdvyN2_/view?usp=sharing)<br>
 
 ## File Description
 - ```train.py``` is a file used to train Blind AI. Please run ```python train.py -h``` for our explanation of the parameters.
