@@ -19,7 +19,7 @@ This page contains the source code and model of our deep reinforcement learning 
 - Download the model from [here](https://drive.google.com/file/d/1Kz_qzUmcJOAj0B9JfFbTJ1FzRFu8fg0B/view?usp=share_link) and paste the folder named `trained_model` into the root directory.
 - Run the ```trained_ai/test.py``` to test the Blind AI. e.g. ```python trained_ai/test.py --p2 MctsAi23i --encoder mel```
 
-## Model:
+## Model (uploaded on July 1, 2024):
 - [Click here.](https://drive.google.com/file/d/1vvklFZbTg7TTRIMukuH_OiCrzPdvyN2_/view?usp=sharing)<br>
 
 ## File Description
