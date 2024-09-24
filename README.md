@@ -22,7 +22,7 @@ conda activate ice
 - Boot DareFightingICE with the option `--limithp 400 400 --pyftg-mode`.
 - Run the ```main.py``` file to train. e.g ```python main.py train --p2 MctsAi23i --encoder mel --id rnn_1_frame_256_mctsai23i --n-frame 1 --recurrent```
 - Download the model from [here](https://drive.google.com/drive/folders/1xVIlMNNY8prY3HgMdPnqC37loaZUlwAJ?usp=sharing) and paste the folder named `trained_model` into the root directory.
-- Run the ```python main.py test --encoder --p2 MctsAi23i --game_num number_of_games``` command to test the Blind AI.
+- Run the ```python main.py test --encoder your_encoder --p2 MctsAi23i --game_num number_of_games``` command to test the Blind AI.
 
 ## Model:
 - [Click here.](https://drive.google.com/drive/folders/1xVIlMNNY8prY3HgMdPnqC37loaZUlwAJ?usp=sharing)<br>
@@ -35,11 +35,11 @@ conda activate ice
 
 ## Get sound design evaluation metrics
 - After finishing your sound design, please run the following command to train Blind AI:
-  ```python train.py --p2 MctsAi23i --encoder fft --id {experiment_id} --n_frame 1 --recurrent```, where you can decide ```experiment_id``` on your own
+  ```python train.py --p2 MctsAi23i --encoder mel --id {experiment_id} --n_frame 1 --recurrent```, where you can decide ```experiment_id``` on your own
 - After training, a result file with the name ```result_fft_{experiment_id}_rnn.txt``` is created. Please run ```visualize``` as follows: ```python main.py visualize --file result_fft_{experiment_id}_rnn.txt --title FFT```. A plot will be shown and the area under the learning curve will be printed out.
 - Before testing the performance of the Blind AI against MctsAi23i, please remove all the files under ```log/point``` of DareFightingICE.
-- Please revise the ```path``` parameter of the Blind AI in line 16 of ```trained_ai/test.py``` to your trained model location.
-- Run ```TBU``` to begin testing.
+- Please revise the ```path``` parameter of the Blind AI in line 12 of ```src/test.py``` to your trained model location.
+- Run ```python main.py test --encoder your_mel encoder --p2 MctsAi23i --game_num 30``` to begin testing.
 - After testing, please run ```python main.py analyze --path {path}``` where ```path``` is the location of ```log/point``` of DareFightingICE.
 - Both win ratio and average HP difference will be printed out.
 
