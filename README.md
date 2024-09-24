@@ -19,10 +19,10 @@ cd BlindAI
 conda env create -n ice -f environment.yml
 conda activate ice
 ```
-- Boot DareFightingICE with the option `--limithp 400 400 --grpc-auto --non-delay 0`.
-- Run the ```train.py``` file to train. e.g ```python main.py train --p2 MctsAi23i --encoder mel --id rnn_1_frame_256_mctsai23i --n-frame 1 --recurrent```
-- Download the model from [here](https://drive.google.com/file/d/1Kz_qzUmcJOAj0B9JfFbTJ1FzRFu8fg0B/view?usp=share_link) and paste the folder named `trained_model` into the root directory.
-- Run the ```trained_ai/test.py``` to test the Blind AI. e.g. ```TBU```
+- Boot DareFightingICE with the option `--limithp 400 400 --pyftg-mode`.
+- Run the ```main.py``` file to train. e.g ```python main.py train --p2 MctsAi23i --encoder mel --id rnn_1_frame_256_mctsai23i --n-frame 1 --recurrent```
+- Download the model from [here](https://drive.google.com/drive/folders/1xVIlMNNY8prY3HgMdPnqC37loaZUlwAJ?usp=sharing) and paste the folder named `trained_model` into the root directory.
+- Run the ```python main.py test --encoder --p2 MctsAi23i --game_num number_of_games``` command to test the Blind AI.
 
 ## Model:
 - [Click here.](https://drive.google.com/drive/folders/1xVIlMNNY8prY3HgMdPnqC37loaZUlwAJ?usp=sharing)<br>
@@ -31,6 +31,7 @@ conda activate ice
 - ```train``` is a command used to train Blind AI. Please run ```python main.py train --help``` for our explanation of the parameters.
 - ```visualize``` is used to visualize the learning curve and calculate the area under the learning curve.
 - ```analyze``` is used to calculate the win ratio and average HP difference between Blind AI and MctsAi23i.
+- ```test``` is used to test the performance of the trained Blind AI. Please run ```python main.py test --help``` for our explanation of the parameters.
 
 ## Get sound design evaluation metrics
 - After finishing your sound design, please run the following command to train Blind AI:
@@ -43,12 +44,16 @@ conda activate ice
 - Both win ratio and average HP difference will be printed out.
 
 ## Tested Environment
-- Intel(R) Xeon(R) W-2135 CPU @ 3.70GHz   3.70 GHz
-- 16.0 GB RAM
-- NVIDIA Quadro P1000 GPU
-- Windows 10 Pro
-- Python 3.12
-- DareFightingICE 7.0
+1. Software:
+   - OS: Linux Ubuntu 20.04.3 LTS (Focal Fossa)
+   - OpenJDK: 21.0.2
+   - DareFightingICE: 6.3.1
+   - Python: 3.12.3
+   - pyftg: 2.3b0
+2. Hardware:
+   - CPU: Intel(R) Xeon(R) Gold 6258R CPU @ 2.70GHz
+   - RAM: 188 GB
+   - GPU: NVIDIA A100 80GB VRAM
 
 ## Performance against MctsAi23i
 - Winning ratio: 0.54
