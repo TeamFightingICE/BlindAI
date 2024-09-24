@@ -1,5 +1,3 @@
-import argparse
-
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.linear_model import LinearRegression
@@ -69,15 +67,3 @@ def draw_polynomial(file, title, degree=4):
     plt.xlabel('Epoch')
     plt.ylabel('HP Difference')
     plt.show()
-    
-    
-# draw_polynomial("reward_fft_rnn_1_frame_256_mctsai65_rnn.txt", 'FFT', 4)
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--file', type=str, required=True, help='The result file')
-    parser.add_argument('--title', type=str, required=True, help='Title of the plot')
-    parser.add_argument('--degree', type=int, default=4, help='Polynomial degree')
-    args = parser.parse_args()
-    print('Input parameters:')
-    print(' '.join(f'{k}={v}' for k, v in vars(args).items()))
-    draw_polynomial(args.file, args.title, args.degree)

@@ -14,8 +14,9 @@ from pyftg.models.frame_data import FrameData
 from pyftg.models.key import Key
 from pyftg.models.round_result import RoundResult
 
-from encoder import FFTEncoder, MelSpecEncoder, RawEncoder, SampleEncoder
-from model import FeedForwardActor, RecurrentActor
+from src.encoders import FFTEncoder, MelSpecEncoder, RawEncoder, SampleEncoder
+from src.models.feed_forward_actor import FeedForwardActor
+from src.models.recurrent_actor import RecurrentActor
 
 STATE_DIM = {
     1: {
@@ -67,7 +68,7 @@ class SoundAgent(AIInterface):
     def initialize(self, gameData, player):
         # Initializng the command center, the simulator and some other things
         self.inputKey = Key()
-        self.frameData = FrameData.get_default_instance()
+        self.frameData = FrameData()
         self.cc = CommandCenter()
         self.player = player  # p1 == True, p2 == False
         self.gameData = gameData

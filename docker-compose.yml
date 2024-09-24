@@ -1,0 +1,35 @@
+services:
+  server:
+    build: 
+      context: FightingICE
+      dockerfile: Dockerfile
+    volumes:
+      - ./log:/log
+    command: [ "--limithp", "400", "400", "--save-sound-on-replay", "--pyftg-mode", "--non-delay", "2"]
+
+  sd-sample:
+    build: 
+      context: Generative-Sound-AI
+      dockerfile: Dockerfile
+    environment:
+      SERVER_HOST: server
+    depends_on:
+      - server
+    
+  ai-sample:
+    build: 
+      context: BlindAI
+      dockerfile: Dockerfile
+    environment:
+      SERVER_HOST: server
+    depends_on:
+      - server
+      - sd-sample
+    command: ["train", "--p2", "MctsAi23i", "--encoder", "mel", "--id", "rnn_1_frame_256_mctsai23i", "--n-frame", "1", "--recurrent"]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
