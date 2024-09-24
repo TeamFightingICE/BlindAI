@@ -8,6 +8,7 @@ from src.analyze import analyze_fight_result
 from src.enums.encoder import EncoderEnum
 from src.enums.opponent_ai import OpponentAIEnum
 from src.train import async_train_process
+from src.test import run_fight
 from src.visualize import draw_polynomial
 
 app = typer.Typer()
@@ -32,6 +33,21 @@ def train(
     logger.info('Input parameters:')
     logger.info(input_params)
     asyncio.run(async_train_process(encoder.value, id, p2.value, recurrent, n_frame, epoch, training_iteration, game_num, port))
+
+@app.command()
+def test(
+    encoder: Annotated[EncoderEnum, typer.Option(help="Encoder type")],
+    p2: Annotated[str, typer.Option(help="The opponent AI")],
+    game_num: Annotated[int, typer.Option(help="The number of games to play")]
+):
+    input_params = {
+        'encoder': encoder.value,
+        'p2': p2,
+        'game_num': game_num
+    }
+    logger.info("Input parameters:")
+    logger.info(input_params)
+    asyncio.run(run_fight(encoder.value, p2, game_num))
 
 
 @app.command()
