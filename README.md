@@ -24,8 +24,10 @@ conda activate ice
 - Download the model from [here](https://drive.google.com/drive/folders/1xVIlMNNY8prY3HgMdPnqC37loaZUlwAJ?usp=sharing) and paste the folder named `trained_model` into the root directory.
 - Run the ```python main.py test --encoder --p2 MctsAi23i --game_num number_of_games``` command to test the Blind AI.
 
+
 ## Model:
 - [Click here.](https://drive.google.com/drive/folders/1xVIlMNNY8prY3HgMdPnqC37loaZUlwAJ?usp=sharing)<br>
+
 
 ## Command Description
 - ```train``` is a command used to train Blind AI. Please run ```python main.py train --help``` for our explanation of the parameters.
