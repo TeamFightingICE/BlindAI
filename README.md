@@ -25,7 +25,7 @@ conda activate ice
 - Run the ```trained_ai/test.py``` to test the Blind AI. e.g. ```TBU```
 
 ## Model:
-- [Click here.](https://drive.google.com/file/d/1Kz_qzUmcJOAj0B9JfFbTJ1FzRFu8fg0B/view?usp=share_link)<br>
+- [Click here.](https://drive.google.com/drive/folders/1xVIlMNNY8prY3HgMdPnqC37loaZUlwAJ?usp=sharing)<br>
 
 ## Command Description
 - ```train``` is a command used to train Blind AI. Please run ```python main.py train --help``` for our explanation of the parameters.
